@@ -30,5 +30,13 @@ func Init(dbPath string) (*sql.DB, error) {
 	}
 	fmt.Printf("Applied %d migrations!\n", n)
 
+	content_d, _ := os.ReadFile("db/test_data/directors.sql")
+	content_m, _ := os.ReadFile("db/test_data/media.sql")
+	content_c, _ := os.ReadFile("db/test_data/comments.sql")
+
+	db.Exec(string(content_d))
+	db.Exec(string(content_m))
+	db.Exec(string(content_c))
+
 	return db, nil
 }

@@ -8,7 +8,7 @@ SELECT * FROM media;
 -- name: CreateMedia :one
 INSERT INTO media (
 	title, director_id,
-	release_year, synopsis
+	released_at, synopsis
 ) VALUES (
 	?, ?,
 	?, ?
@@ -23,7 +23,7 @@ WHERE media_id = ?;
 UPDATE media
 set title = ?,
 director_id = ?,
-release_year = ?,
+released_at = ?,
 synopsis = ?
 WHERE media_id = ?
 RETURNING *;

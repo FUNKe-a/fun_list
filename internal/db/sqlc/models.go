@@ -34,9 +34,9 @@ type Director struct {
 }
 
 type Medium struct {
-	MediaID     int64
-	Title       string
-	DirectorID  int64
-	ReleaseYear *int64
-	Synopsis    *string
+	MediaID    int64
+	Title      string
+	DirectorID int64
+	ReleasedAt *time.Time
+	Synopsis   *string
 }

@@ -42,18 +42,20 @@ func setHandlers(mux *http.ServeMux, q *sqlc.Queries) {
 		Queries: q,
 	}
 
-	mux.HandleFunc("GET /api/directors/{id}", dir_h.Get)
 	mux.HandleFunc("GET /api/directors", dir_h.List)
+	mux.HandleFunc("GET /api/directors/{id}", dir_h.Get)
 	mux.HandleFunc("POST /api/directors", dir_h.Post)
 	mux.HandleFunc("PATCH /api/directors/{id}", dir_h.Patch)
 	mux.HandleFunc("DELETE /api/directors/{id}", dir_h.Delete)
-	mux.HandleFunc("GET /api/media/{id}", media_h.Get)
+
 	mux.HandleFunc("GET /api/media", media_h.List)
+	mux.HandleFunc("GET /api/media/{id}", media_h.Get)
 	mux.HandleFunc("POST /api/media", media_h.Post)
 	mux.HandleFunc("PATCH /api/media/{id}", media_h.Patch)
 	mux.HandleFunc("DELETE /api/media/{id}", media_h.Delete)
-	mux.HandleFunc("GET /api/comments/{id}", comment_h.Get)
+
 	mux.HandleFunc("GET /api/comments", comment_h.List)
+	mux.HandleFunc("GET /api/comments/{id}", comment_h.Get)
 	mux.HandleFunc("POST /api/comments", comment_h.Post)
 	mux.HandleFunc("PATCH /api/comments/{id}", comment_h.Patch)
 	mux.HandleFunc("DELETE /api/comments/{id}", comment_h.Delete)

@@ -20,7 +20,7 @@ CREATE TABLE media (
 	media_id INTEGER PRIMARY KEY,
 	title TEXT NOT NULL,
 	director_id INTEGER NOT NULL,
-    release_year INTEGER,
+    released_at DATETIME,
 	synopsis TEXT,
     FOREIGN KEY (director_id) REFERENCES directors(director_id)
 );

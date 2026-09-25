@@ -29,6 +29,7 @@ func (h *MediaHandler) Get(w http.ResponseWriter, r *http.Request) {
             http.Error(w, "Media not found", http.StatusNotFound)
             return
         }
+		fmt.Println(media)
         http.Error(w, "Internal server error", http.StatusInternalServerError)
         return
     }
@@ -36,8 +37,6 @@ func (h *MediaHandler) Get(w http.ResponseWriter, r *http.Request) {
     w.Header().Set("Content-Type", "application/json")
     json.NewEncoder(w).Encode(media)
 }
-
-
 
 func (h *MediaHandler) List(w http.ResponseWriter, r *http.Request) {
     media, err := h.Queries.ListMedia(r.Context())

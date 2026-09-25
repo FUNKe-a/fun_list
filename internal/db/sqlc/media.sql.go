@@ -7,31 +7,32 @@ package sqlc
 
 import (
 	"context"
+	"time"
 )
 
 const createMedia = `-- name: CreateMedia :one
 INSERT INTO media (
 	title, director_id,
-	release_year, synopsis
+	released_at, synopsis
 ) VALUES (
 	?, ?,
 	?, ?
 )
-RETURNING media_id, title, director_id, release_year, synopsis
+RETURNING media_id, title, director_id, released_at, synopsis
 `
 
 type CreateMediaParams struct {
-	Title       string
-	DirectorID  int64
-	ReleaseYear *int64
-	Synopsis    *string
+	Title      string
+	DirectorID int64
+	ReleasedAt *time.Time
+	Synopsis   *string
 }
 
 func (q *Queries) CreateMedia(ctx context.Context, arg CreateMediaParams) (Medium, error) {
 	row := q.db.QueryRowContext(ctx, createMedia,
 		arg.Title,
 		arg.DirectorID,
-		arg.ReleaseYear,
+		arg.ReleasedAt,
 		arg.Synopsis,
 	)
 	var i Medium
@@ -39,7 +40,7 @@ func (q *Queries) CreateMedia(ctx context.Context, arg CreateMediaParams) (Mediu
 		&i.MediaID,
 		&i.Title,
 		&i.DirectorID,
-		&i.ReleaseYear,
+		&i.ReleasedAt,
 		&i.Synopsis,
 	)
 	return i, err
@@ -56,7 +57,7 @@ func (q *Queries) DeleteMedia(ctx context.Context, mediaID int64) error {
 }
 
 const getMedia = `-- name: GetMedia :one
-SELECT media_id, title, director_id, release_year, synopsis FROM media
+SELECT media_id, title, director_id, released_at, synopsis FROM media
 WHERE media_id = ? LIMIT 1
 `
 
@@ -67,14 +68,14 @@ func (q *Queries) GetMedia(ctx context.Context, mediaID int64) (Medium, error) {
 		&i.MediaID,
 		&i.Title,
 		&i.DirectorID,
-		&i.ReleaseYear,
+		&i.ReleasedAt,
 		&i.Synopsis,
 	)
 	return i, err
 }
 
 const listMedia = `-- name: ListMedia :many
-SELECT media_id, title, director_id, release_year, synopsis FROM media
+SELECT media_id, title, director_id, released_at, synopsis FROM media
 `
 
 func (q *Queries) ListMedia(ctx context.Context) ([]Medium, error) {
@@ -90,7 +91,7 @@ func (q *Queries) ListMedia(ctx context.Context) ([]Medium, error) {
 			&i.MediaID,
 			&i.Title,
 			&i.DirectorID,
-			&i.ReleaseYear,
+			&i.ReleasedAt,
 			&i.Synopsis,
 		); err != nil {
 			return nil, err
@@ -110,25 +111,25 @@ const updateMedia = `-- name: UpdateMedia :one
 UPDATE media
 set title = ?,
 director_id = ?,
-release_year = ?,
+released_at = ?,
 synopsis = ?
 WHERE media_id = ?
-RETURNING media_id, title, director_id, release_year, synopsis
+RETURNING media_id, title, director_id, released_at, synopsis
 `
 
 type UpdateMediaParams struct {
-	Title       string
-	DirectorID  int64
-	ReleaseYear *int64
-	Synopsis    *string
-	MediaID     int64
+	Title      string
+	DirectorID int64
+	ReleasedAt *time.Time
+	Synopsis   *string
+	MediaID    int64
 }
 
 func (q *Queries) UpdateMedia(ctx context.Context, arg UpdateMediaParams) (Medium, error) {
 	row := q.db.QueryRowContext(ctx, updateMedia,
 		arg.Title,
 		arg.DirectorID,
-		arg.ReleaseYear,
+		arg.ReleasedAt,
 		arg.Synopsis,
 		arg.MediaID,
 	)
@@ -137,7 +138,7 @@ func (q *Queries) UpdateMedia(ctx context.Context, arg UpdateMediaParams) (Mediu
 		&i.MediaID,
 		&i.Title,
 		&i.DirectorID,
-		&i.ReleaseYear,
+		&i.ReleasedAt,
 		&i.Synopsis,
 	)
 	return i, err
