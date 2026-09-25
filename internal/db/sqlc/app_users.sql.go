@@ -9,13 +9,129 @@ import (
 	"context"
 )
 
-const getUser = `-- name: GetUser :one
+const createUser = `-- name: CreateUser :one
+INSERT INTO app_users (
+	username, email,
+	password_hash, password_salt
+) VALUES (
+	?, ?,
+	?, ?
+)
+RETURNING user_id, username, email, password_hash, password_salt
+`
+
+type CreateUserParams struct {
+	Username     string
+	Email        *string
+	PasswordHash string
+	PasswordSalt string
+}
+
+func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (AppUser, error) {
+	row := q.db.QueryRowContext(ctx, createUser,
+		arg.Username,
+		arg.Email,
+		arg.PasswordHash,
+		arg.PasswordSalt,
+	)
+	var i AppUser
+	err := row.Scan(
+		&i.UserID,
+		&i.Username,
+		&i.Email,
+		&i.PasswordHash,
+		&i.PasswordSalt,
+	)
+	return i, err
+}
+
+const deleteUser = `-- name: DeleteUser :exec
+DELETE FROM app_users
+WHERE user_id = ?
+`
+
+func (q *Queries) DeleteUser(ctx context.Context, userID int64) error {
+	_, err := q.db.ExecContext(ctx, deleteUser, userID)
+	return err
+}
+
+const getUsers = `-- name: GetUsers :one
 SELECT user_id, username, email, password_hash, password_salt FROM app_users
 WHERE user_id = ? LIMIT 1
 `
 
-func (q *Queries) GetUser(ctx context.Context, userID int64) (AppUser, error) {
-	row := q.db.QueryRowContext(ctx, getUser, userID)
+func (q *Queries) GetUsers(ctx context.Context, userID int64) (AppUser, error) {
+	row := q.db.QueryRowContext(ctx, getUsers, userID)
+	var i AppUser
+	err := row.Scan(
+		&i.UserID,
+		&i.Username,
+		&i.Email,
+		&i.PasswordHash,
+		&i.PasswordSalt,
+	)
+	return i, err
+}
+
+const listUsers = `-- name: ListUsers :many
+SELECT user_id, username, email, password_hash, password_salt FROM app_users
+`
+
+func (q *Queries) ListUsers(ctx context.Context) ([]AppUser, error) {
+	rows, err := q.db.QueryContext(ctx, listUsers)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []AppUser
+	for rows.Next() {
+		var i AppUser
+		if err := rows.Scan(
+			&i.UserID,
+			&i.Username,
+			&i.Email,
+			&i.PasswordHash,
+			&i.PasswordSalt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const updateUser = `-- name: UpdateUser :one
+UPDATE app_users
+set username = ?,
+email = ?,
+password_hash = ?,
+password_salt = ?
+WHERE user_id = ?
+RETURNING user_id, username, email, password_hash, password_salt
+`
+
+type UpdateUserParams struct {
+	Username     string
+	Email        *string
+	PasswordHash string
+	PasswordSalt string
+	UserID       int64
+}
+
+func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (AppUser, error) {
+	row := q.db.QueryRowContext(ctx, updateUser,
+		arg.Username,
+		arg.Email,
+		arg.PasswordHash,
+		arg.PasswordSalt,
+		arg.UserID,
+	)
 	var i AppUser
 	err := row.Scan(
 		&i.UserID,

@@ -5,13 +5,38 @@
 package sqlc
 
 import (
-	"database/sql"
+	"time"
 )
 
 type AppUser struct {
 	UserID       int64
 	Username     string
-	Email        sql.NullString
+	Email        *string
 	PasswordHash string
 	PasswordSalt string
+}
+
+type Comment struct {
+	CommentID int64
+	UserID    int64
+	MediaID   int64
+	Content   string
+	Rating    int64
+	CreatedAt time.Time
+}
+
+type Director struct {
+	DirectorID  int64
+	Name        string
+	DateOfBirth *string
+	DateOfDeath *string
+	Biography   *string
+}
+
+type Medium struct {
+	MediaID     int64
+	Title       string
+	DirectorID  int64
+	ReleaseYear *int64
+	Synopsis    *string
 }
