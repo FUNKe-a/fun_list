@@ -1,1 +1,16 @@
+# db
 data/
+
+# Python virtual environment
+.venv/
+venv/
+env/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# uv specific
+.python-version
+.uv/
