@@ -11,8 +11,8 @@ CREATE TABLE app_users (
 CREATE TABLE directors (
 	director_id INTEGER PRIMARY KEY,
 	name TEXT NOT NULL,
-	date_of_birth TEXT,
-	date_of_death TEXT,
+	date_of_birth INTEGER,
+	date_of_death INTEGER,
 	biography TEXT
 );
 
@@ -20,7 +20,7 @@ CREATE TABLE media (
 	media_id INTEGER PRIMARY KEY,
 	title TEXT NOT NULL,
 	director_id INTEGER NOT NULL,
-    released_at DATETIME,
+    released_at INTEGER,
 	synopsis TEXT,
     FOREIGN KEY (director_id) REFERENCES directors(director_id)
 );
@@ -31,7 +31,7 @@ CREATE TABLE comments (
 	media_id INTEGER NOT NULL,
 	content TEXT NOT NULL,
 	rating INTEGER NOT NULL CHECK(rating >= 1 AND RATING <= 10),
-	created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	created_at INTEGER NOT NULL DEFAULT (unixepoch()),
 	FOREIGN KEY (user_id) REFERENCES app_users(user_id),
     FOREIGN KEY (media_id) REFERENCES media(media_id)
 );

@@ -37,8 +37,6 @@ func (h *CommentHandler) Get(w http.ResponseWriter, r *http.Request) {
     json.NewEncoder(w).Encode(comment)
 }
 
-
-
 func (h *CommentHandler) List(w http.ResponseWriter, r *http.Request) {
     comments, err := h.Queries.ListComments(r.Context())
     if err != nil {
@@ -105,7 +103,7 @@ func (h *CommentHandler) Delete(w http.ResponseWriter, r *http.Request) {
     w.WriteHeader(http.StatusNoContent)
 }
 
-func (h *CommentHandler) Patch(w http.ResponseWriter, r *http.Request) {
+func (h *CommentHandler) Put(w http.ResponseWriter, r *http.Request) {
     id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
     if err != nil {
         http.Error(w, "Invalid ID format", http.StatusBadRequest)

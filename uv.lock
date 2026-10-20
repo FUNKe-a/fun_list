@@ -194,19 +194,20 @@ wheels = [
 name = "test-suite"
 version = "0.1.0"
 source = { virtual = "." }
-dependencies = [
+
+[package.dev-dependencies]
+dev = [
     { name = "pytest" },
     { name = "requests" },
 ]
 
 [package.metadata]
-requires-dist = [
+
+[package.metadata.requires-dev]
+dev = [
     { name = "pytest" },
     { name = "requests" },
 ]
-
-[package.metadata.requires-dev]
-dev = []
 
 [[package]]
 name = "urllib3"

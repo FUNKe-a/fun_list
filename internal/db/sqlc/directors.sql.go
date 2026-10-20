@@ -22,8 +22,8 @@ RETURNING director_id, name, date_of_birth, date_of_death, biography
 
 type CreateDirectorParams struct {
 	Name        string
-	DateOfBirth *string
-	DateOfDeath *string
+	DateOfBirth *int64
+	DateOfDeath *int64
 	Biography   *string
 }
 
@@ -118,8 +118,8 @@ RETURNING director_id, name, date_of_birth, date_of_death, biography
 
 type UpdateDirectorParams struct {
 	Name        string
-	DateOfBirth *string
-	DateOfDeath *string
+	DateOfBirth *int64
+	DateOfDeath *int64
 	Biography   *string
 	DirectorID  int64
 }

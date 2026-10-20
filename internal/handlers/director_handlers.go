@@ -36,8 +36,6 @@ func (h *DirectorHandler) Get(w http.ResponseWriter, r *http.Request) {
     json.NewEncoder(w).Encode(director)
 }
 
-
-
 func (h *DirectorHandler) List(w http.ResponseWriter, r *http.Request) {
     directors, err := h.Queries.ListDirectors(r.Context())
     if err != nil {
@@ -90,7 +88,7 @@ func (h *DirectorHandler) Delete(w http.ResponseWriter, r *http.Request) {
     w.WriteHeader(http.StatusNoContent)
 }
 
-func (h *DirectorHandler) Patch(w http.ResponseWriter, r *http.Request) {
+func (h *DirectorHandler) Put(w http.ResponseWriter, r *http.Request) {
     id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
     if err != nil {
         http.Error(w, "Invalid ID format", http.StatusBadRequest)

@@ -4,10 +4,6 @@
 
 package sqlc
 
-import (
-	"time"
-)
-
 type AppUser struct {
 	UserID       int64
 	Username     string
@@ -22,14 +18,14 @@ type Comment struct {
 	MediaID   int64
 	Content   string
 	Rating    int64
-	CreatedAt time.Time
+	CreatedAt int64
 }
 
 type Director struct {
 	DirectorID  int64
 	Name        string
-	DateOfBirth *string
-	DateOfDeath *string
+	DateOfBirth *int64
+	DateOfDeath *int64
 	Biography   *string
 }
 
@@ -37,6 +33,6 @@ type Medium struct {
 	MediaID    int64
 	Title      string
 	DirectorID int64
-	ReleasedAt *time.Time
+	ReleasedAt *int64
 	Synopsis   *string
 }

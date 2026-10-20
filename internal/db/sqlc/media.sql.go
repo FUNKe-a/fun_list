@@ -7,7 +7,6 @@ package sqlc
 
 import (
 	"context"
-	"time"
 )
 
 const createMedia = `-- name: CreateMedia :one
@@ -24,7 +23,7 @@ RETURNING media_id, title, director_id, released_at, synopsis
 type CreateMediaParams struct {
 	Title      string
 	DirectorID int64
-	ReleasedAt *time.Time
+	ReleasedAt *int64
 	Synopsis   *string
 }
 
@@ -120,7 +119,7 @@ RETURNING media_id, title, director_id, released_at, synopsis
 type UpdateMediaParams struct {
 	Title      string
 	DirectorID int64
-	ReleasedAt *time.Time
+	ReleasedAt *int64
 	Synopsis   *string
 	MediaID    int64
 }
