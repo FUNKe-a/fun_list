@@ -12,35 +12,29 @@ import (
 const createUser = `-- name: CreateUser :one
 INSERT INTO app_users (
 	username, email,
-	password_hash, password_salt
+	password_hash
 ) VALUES (
 	?, ?,
-	?, ?
+	?
 )
-RETURNING user_id, username, email, password_hash, password_salt
+RETURNING user_id, username, email, password_hash, role
 `
 
 type CreateUserParams struct {
 	Username     string
 	Email        *string
 	PasswordHash string
-	PasswordSalt string
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (AppUser, error) {
-	row := q.db.QueryRowContext(ctx, createUser,
-		arg.Username,
-		arg.Email,
-		arg.PasswordHash,
-		arg.PasswordSalt,
-	)
+	row := q.db.QueryRowContext(ctx, createUser, arg.Username, arg.Email, arg.PasswordHash)
 	var i AppUser
 	err := row.Scan(
 		&i.UserID,
 		&i.Username,
 		&i.Email,
 		&i.PasswordHash,
-		&i.PasswordSalt,
+		&i.Role,
 	)
 	return i, err
 }
@@ -55,8 +49,26 @@ func (q *Queries) DeleteUser(ctx context.Context, userID int64) error {
 	return err
 }
 
+const getUserByUsername = `-- name: GetUserByUsername :one
+SELECT user_id, username, email, password_hash, role FROM app_users
+WHERE username = ? LIMIT 1
+`
+
+func (q *Queries) GetUserByUsername(ctx context.Context, username string) (AppUser, error) {
+	row := q.db.QueryRowContext(ctx, getUserByUsername, username)
+	var i AppUser
+	err := row.Scan(
+		&i.UserID,
+		&i.Username,
+		&i.Email,
+		&i.PasswordHash,
+		&i.Role,
+	)
+	return i, err
+}
+
 const getUsers = `-- name: GetUsers :one
-SELECT user_id, username, email, password_hash, password_salt FROM app_users
+SELECT user_id, username, email, password_hash, role FROM app_users
 WHERE user_id = ? LIMIT 1
 `
 
@@ -68,13 +80,13 @@ func (q *Queries) GetUsers(ctx context.Context, userID int64) (AppUser, error) {
 		&i.Username,
 		&i.Email,
 		&i.PasswordHash,
-		&i.PasswordSalt,
+		&i.Role,
 	)
 	return i, err
 }
 
 const listUsers = `-- name: ListUsers :many
-SELECT user_id, username, email, password_hash, password_salt FROM app_users
+SELECT user_id, username, email, password_hash, role FROM app_users
 `
 
 func (q *Queries) ListUsers(ctx context.Context) ([]AppUser, error) {
@@ -91,7 +103,7 @@ func (q *Queries) ListUsers(ctx context.Context) ([]AppUser, error) {
 			&i.Username,
 			&i.Email,
 			&i.PasswordHash,
-			&i.PasswordSalt,
+			&i.Role,
 		); err != nil {
 			return nil, err
 		}
@@ -111,16 +123,16 @@ UPDATE app_users
 set username = ?,
 email = ?,
 password_hash = ?,
-password_salt = ?
+role = ?
 WHERE user_id = ?
-RETURNING user_id, username, email, password_hash, password_salt
+RETURNING user_id, username, email, password_hash, role
 `
 
 type UpdateUserParams struct {
 	Username     string
 	Email        *string
 	PasswordHash string
-	PasswordSalt string
+	Role         string
 	UserID       int64
 }
 
@@ -129,7 +141,7 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (AppUser
 		arg.Username,
 		arg.Email,
 		arg.PasswordHash,
-		arg.PasswordSalt,
+		arg.Role,
 		arg.UserID,
 	)
 	var i AppUser
@@ -138,7 +150,7 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (AppUser
 		&i.Username,
 		&i.Email,
 		&i.PasswordHash,
-		&i.PasswordSalt,
+		&i.Role,
 	)
 	return i, err
 }

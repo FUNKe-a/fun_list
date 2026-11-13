@@ -9,7 +9,7 @@ type AppUser struct {
 	Username     string
 	Email        *string
 	PasswordHash string
-	PasswordSalt string
+	Role         string
 }
 
 type Comment struct {
@@ -35,4 +35,13 @@ type Medium struct {
 	DirectorID int64
 	ReleasedAt *int64
 	Synopsis   *string
+}
+
+type RefreshToken struct {
+	ID        int64
+	UserID    int64
+	TokenHash string
+	ExpiresAt int64
+	CreatedAt int64
+	RevokedAt *int64
 }

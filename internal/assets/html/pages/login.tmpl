@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang='en'>
+    <head>
+        <meta charset='utf-8'>
+        <title>Log in</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <script defer src="/static/js/htmx.min.js"></script>
+    </head>
+    <body>
+		<h1>Log in</h1>
+
+		<form method="post" action="/auth/login">
+		  <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+
+		  <p>
+			<label for="username">Username</label><br>
+			<input type="text" id="username" name="username" value="{{.Email}}"
+				   required autocomplete="username" autofocus
+				   maxlength="254">
+		  </p>
+
+		  <p>
+			<label for="password">Password</label><br>
+			<input type="password" id="password" name="password"
+				   required autocomplete="current-password">
+		  </p>
+
+		  <p>
+			<button type="submit">Log in</button>
+		  </p>
+		</form>
+
+		<p>No account yet? <a href="/auth/register">Create one</a></p>
+    </body>
+</html>

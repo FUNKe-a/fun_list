@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang='en'>
+    <head>
+        <meta charset='utf-8'>
+        <title>Register</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <script defer src="/static/js/htmx.min.js"></script>
+    </head>
+    <body>
+		<h1>Register</h1>
+
+		<form method="post" action="/auth/register">
+		  <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+
+		  <p>
+			<label for="username">Username</label><br>
+			<input type="text" id="username" name="username" value="{{.Username}}"
+				   required autocomplete="username" autofocus
+				   maxlength="254">
+		  </p>
+
+		  <p>
+			<label for="email">Email</label><br>
+			<input type="email" id="email" name="email" value="{{.Email}}"
+				   required autocomplete="username"
+				   maxlength="254" placeholder="you@example.com">
+		  </p>
+
+		  <p>
+			<label for="password">Password</label><br>
+			<input type="password" id="password" name="password"
+				   required autocomplete="current-password" minlength="10">
+		  </p>
+
+		  <p>
+			<button type="submit">Log in</button>
+		  </p>
+		</form>
+
+		<p>Already have an account? <a href="/auth/login">Login</a></p>
+    </body>
+</html>

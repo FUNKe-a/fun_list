@@ -14,3 +14,6 @@ __pycache__/
 # uv specific
 .python-version
 .uv/
+
+# ignore JWT auth keys
+keys/
