@@ -4,9 +4,7 @@ import (
 	"html/template"
 	"net/http"
 	"strconv"
-	"time"
 
-	"github.com/FUNKe-a/fun_list/internal/auth"
 	"github.com/FUNKe-a/fun_list/internal/db/sqlc"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -50,24 +48,7 @@ func (h *Handler) HandleRegister(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	refreshToken, err := auth.GenerateRefreshToken()
-	if err != nil {
-		http.Error(w, "server error", http.StatusInternalServerError)
-		return
-	}
-
-	_, err = h.Queries.CreateRefreshToken(r.Context(), sqlc.CreateRefreshTokenParams{
-		UserID:    user.UserID,
-		TokenHash: auth.HashToken(refreshToken),
-		ExpiresAt: time.Now().Add(refreshTTL).Unix(),
-	})
-	if err != nil {
-		http.Error(w, "server error", http.StatusInternalServerError)
-		return
-	}
-
 	setAuthCookie(w, "access_token", accessToken, h.Tokens.TTL(), "/")
-	setAuthCookie(w, "refresh_token", refreshToken, refreshTTL, "/auth/refresh")
 
 	http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
 }

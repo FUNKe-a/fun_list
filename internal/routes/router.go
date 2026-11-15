@@ -3,7 +3,6 @@ package routes
 import (
 	"net/http"
 	"github.com/FUNKe-a/fun_list/internal/handlers"
-	"github.com/FUNKe-a/fun_list/internal/auth"
 )
 
 func RoutesHandle(mux *http.ServeMux, h *handlers.Handler) {
@@ -33,8 +32,5 @@ func RoutesHandle(mux *http.ServeMux, h *handlers.Handler) {
 	mux.HandleFunc("POST /auth/register", h.HandleRegister)
 	mux.HandleFunc("POST /auth/logout", h.HandleLogout)
 
-	mux.Handle("GET /dashboard", auth.RequireAuth(h.Tokens, "access_token")(
-		http.HandlerFunc(h.ShowDashboard),
-	))
-	mux.HandleFunc("GET /auth/refresh", h.Refresh)
+	mux.HandleFunc("GET /dashboard", h.ShowDashboard)
 }
