@@ -10,7 +10,7 @@
     <body>
 		<h1>Log in</h1>
 
-		<form method="post" action="/auth/login">
+		<form hx-post="/api/auth/login" hx-swap="none">
 		  <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
 
 		  <p>
@@ -31,6 +31,6 @@
 		  </p>
 		</form>
 
-		<p>No account yet? <a href="/auth/register">Create one</a></p>
+		<p>No account yet? <a href="/register">Create one</a></p>
     </body>
 </html>

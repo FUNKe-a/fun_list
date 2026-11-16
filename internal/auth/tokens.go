@@ -16,15 +16,15 @@ type Claims struct {
 	Role string `json:"role,omitempty"`
 }
 
-type TokenService struct {
+type AuthService struct {
 	privateKey *rsa.PrivateKey
 	publicKey  *rsa.PublicKey
 	issuer     string
 	ttl        time.Duration
 }
 
-func NewTokenService(priv *rsa.PrivateKey, pub *rsa.PublicKey, issuer string, ttl time.Duration) *TokenService {
-	return &TokenService{
+func NewAuthService(priv *rsa.PrivateKey, pub *rsa.PublicKey, issuer string, ttl time.Duration) *AuthService {
+	return &AuthService{
 		privateKey: priv,
 		publicKey:  pub,
 		issuer:     issuer,
@@ -32,11 +32,11 @@ func NewTokenService(priv *rsa.PrivateKey, pub *rsa.PublicKey, issuer string, tt
 	}
 }
 
-func (s *TokenService) TTL() time.Duration {
+func (s *AuthService) TTL() time.Duration {
 	return s.ttl
 }
 
-func (s *TokenService) Issue(userID, name, role string) (string, error) {
+func (s *AuthService) Issue(userID, name, role string) (string, error) {
 	now := time.Now()
 	claims := Claims{
 		RegisteredClaims: jwt.RegisteredClaims{
@@ -53,7 +53,7 @@ func (s *TokenService) Issue(userID, name, role string) (string, error) {
 	return token.SignedString(s.privateKey)
 }
 
-func (s *TokenService) Verify(tokenString string) (*Claims, error) {
+func (s *AuthService) Validate(tokenString string) (*Claims, error) {
 	parser := jwt.NewParser(
 		jwt.WithValidMethods([]string{jwt.SigningMethodRS256.Alg()}),
 		jwt.WithIssuer(s.issuer),

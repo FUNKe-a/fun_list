@@ -10,11 +10,7 @@
     <body>
         <h1>Dashboard</h1>
 
-        <form method="post" action="/auth/logout">
-            <p>
-                <button type="submit">Log out</button>
-            </p>
-        </form>
+        <button hx-post="/api/auth/logout" hx-confirm="Are you sure?" hx-swap="none">Log out</button>
     </body>
 </html>
 

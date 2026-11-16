@@ -10,9 +10,7 @@
     <body>
 		<h1>Register</h1>
 
-		<form method="post" action="/auth/register">
-		  <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
-
+		<form hx-post="/api/auth/register" hx-swap="none">
 		  <p>
 			<label for="username">Username</label><br>
 			<input type="text" id="username" name="username" value="{{.Username}}"
@@ -38,6 +36,6 @@
 		  </p>
 		</form>
 
-		<p>Already have an account? <a href="/auth/login">Login</a></p>
+		<p>Already have an account? <a href="/login">Login</a></p>
     </body>
 </html>

@@ -9,20 +9,6 @@ CREATE TABLE app_users (
 	CHECK (role IN ('user', 'moderator', 'admin'))
 );
 
-CREATE TABLE refresh_tokens (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INTEGER NOT NULL,
-    token_hash TEXT NOT NULL UNIQUE,
-    expires_at INTEGER NOT NULL,
-    created_at INTEGER NOT NULL DEFAULT (unixepoch()),
-    revoked_at INTEGER,
-
-    FOREIGN KEY (user_id) REFERENCES app_users(user_id)
-);
-
-CREATE INDEX idx_refresh_tokens_user_id
-ON refresh_tokens(user_id);
-
 CREATE TABLE directors (
 	director_id INTEGER PRIMARY KEY,
 	name TEXT NOT NULL,
@@ -53,7 +39,6 @@ CREATE TABLE comments (
 
 -- +migrate Down
 -- SQL section 'Down' is executed when this migration is rolled back
-DROP TABLE refresh_tokens;
 DROP TABLE comments;
 DROP TABLE media;
 DROP TABLE directors;

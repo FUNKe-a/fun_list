@@ -2,22 +2,21 @@ package db
 
 import (
 	"database/sql"
-	"fmt"
 	migrate "github.com/rubenv/sql-migrate"
+	"log/slog"
 	_ "modernc.org/sqlite"
 	"os"
 	"path/filepath"
 )
 
-func Init(dbPath string) (*sql.DB, error) {
-	err := os.MkdirAll(filepath.Dir(dbPath), 0755)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to create directory for database: %v", err)
+func Init(dbPath string) *sql.DB {
+	if err := os.MkdirAll(filepath.Dir(dbPath), 0755); err != nil {
+		slog.Error("Failed to create directory for database.", "err", err)
 	}
 
 	db, err := sql.Open("sqlite", dbPath)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to open database: %v", err)
+		slog.Error("Failed to open database.", "err", err)
 	}
 
 	migrations := &migrate.FileMigrationSource{
@@ -26,9 +25,9 @@ func Init(dbPath string) (*sql.DB, error) {
 
 	n, err := migrate.Exec(db, "sqlite3", migrations, migrate.Up)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to apply migration: %v", err)
+		slog.Error("Failed to apply migration.", "err", err)
 	}
-	fmt.Printf("Applied %d migrations!\n", n)
+	slog.Info("Applied migrations.", "amount", n)
 
 	// content_u, _ := os.ReadFile("db/test_data/app_users.sql")
 	// content_d, _ := os.ReadFile("db/test_data/directors.sql")
@@ -40,5 +39,5 @@ func Init(dbPath string) (*sql.DB, error) {
 	// db.Exec(string(content_m))
 	// db.Exec(string(content_c))
 
-	return db, nil
+	return db
 }
