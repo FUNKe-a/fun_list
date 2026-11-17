@@ -44,6 +44,7 @@ func apiMux(h *handlers.Handler) *http.ServeMux {
 	mux.HandleFunc("POST /auth/login", h.HandleLogin)
 	mux.HandleFunc("POST /auth/register", h.HandleRegister)
 	mux.HandleFunc("POST /auth/logout", h.HandleLogout)
+	mux.HandleFunc("POST /auth/refresh", h.HandleRefresh)
 
 	return mux
 }

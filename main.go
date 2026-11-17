@@ -17,10 +17,10 @@ func main() {
 	defer db_conn.Close()
 
 	priv, pub := configs.ParseJWTKeys()
+	queries := sqlc.New(db_conn)
 	handler := handlers.Handler{
-		DB:      db_conn,
-		Queries: sqlc.New(db_conn),
-		Tokens:  auth.NewAuthService(priv, pub, "fun_list", 10*time.Minute),
+		Queries: queries,
+		Tokens:  auth.NewAuthService(priv, pub, "fun_list", 10*time.Minute, 24*time.Hour),
 	}
 
 	mux := routes.CreateMux(&handler)

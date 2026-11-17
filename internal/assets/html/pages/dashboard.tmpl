@@ -10,6 +10,8 @@
     <body>
         <h1>Dashboard</h1>
 
+		<div hx-post="/api/auth/refresh" hx-trigger="every 15s" hx-swap="none"></div>
+
         <button hx-post="/api/auth/logout" hx-confirm="Are you sure?" hx-swap="none">Log out</button>
     </body>
 </html>

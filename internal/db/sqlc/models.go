@@ -38,10 +38,8 @@ type Medium struct {
 }
 
 type RefreshToken struct {
-	ID        int64
+	TokenHash []byte
 	UserID    int64
-	TokenHash string
+	IssuedAt  int64
 	ExpiresAt int64
-	CreatedAt int64
-	RevokedAt *int64
 }

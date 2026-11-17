@@ -9,6 +9,14 @@ CREATE TABLE app_users (
 	CHECK (role IN ('user', 'moderator', 'admin'))
 );
 
+CREATE TABLE refresh_tokens (
+	token_hash BLOB NOT NULL PRIMARY KEY,
+	user_id INTEGER NOT NULL,
+	issued_at INTEGER NOT NULL DEFAULT (unixepoch()),
+	expires_at INTEGER NOT NULL,
+	FOREIGN KEY (user_id) REFERENCES app_users(user_id)
+);
+
 CREATE TABLE directors (
 	director_id INTEGER PRIMARY KEY,
 	name TEXT NOT NULL,
@@ -40,6 +48,7 @@ CREATE TABLE comments (
 -- +migrate Down
 -- SQL section 'Down' is executed when this migration is rolled back
 DROP TABLE comments;
+DROP TABLE refresh_tokens;
 DROP TABLE media;
 DROP TABLE directors;
 DROP TABLE app_users;

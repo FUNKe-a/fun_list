@@ -6,6 +6,10 @@ WHERE user_id = ? LIMIT 1;
 SELECT * FROM app_users
 WHERE username = ? LIMIT 1;
 
+-- name: GetUserByUserID :one
+SELECT * FROM app_users
+WHERE user_id = ? LIMIT 1;
+
 -- name: ListUsers :many
 SELECT * FROM app_users;
 

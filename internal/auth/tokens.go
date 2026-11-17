@@ -1,7 +1,9 @@
 package auth
 
 import (
+	"crypto/rand"
 	"crypto/rsa"
+	"encoding/base64"
 	"errors"
 	"time"
 
@@ -20,30 +22,67 @@ type AuthService struct {
 	privateKey *rsa.PrivateKey
 	publicKey  *rsa.PublicKey
 	issuer     string
-	ttl        time.Duration
+	accDur     time.Duration
+	refDur     time.Duration
 }
 
-func NewAuthService(priv *rsa.PrivateKey, pub *rsa.PublicKey, issuer string, ttl time.Duration) *AuthService {
+func NewAuthService(priv *rsa.PrivateKey, pub *rsa.PublicKey, issuer string, accDur time.Duration, refDur time.Duration) *AuthService {
 	return &AuthService{
 		privateKey: priv,
 		publicKey:  pub,
 		issuer:     issuer,
-		ttl:        ttl,
+		accDur:     accDur,
+		refDur:     refDur,
 	}
 }
 
-func (s *AuthService) TTL() time.Duration {
-	return s.ttl
+func (s *AuthService) AccTTL() time.Duration { return s.accDur }
+func (s *AuthService) RefTTL() time.Duration { return s.refDur }
+
+func CreateRef() string {
+	buf := make([]byte, 32)
+	rand.Read(buf)
+	token := base64.RawURLEncoding.EncodeToString(buf)
+	return token
 }
 
-func (s *AuthService) Issue(userID, name, role string) (string, error) {
+// func (s *AuthService) RotateRef(token string) (string, error) {
+// 	nTo := genRef()
+//
+// 	tokenHa := sha256.Sum256([]byte(token))
+// 	nToHa := sha256.Sum256([]byte(nTo))
+//
+// 	_, err := s.Queries.RotateToken(nil, sqlc.RotateTokenParams{
+// 		TokenHash:   nToHa[:],
+// 		TokenHash_2: tokenHa[:],
+// 	})
+//
+// 	return nTo, err
+// }
+//
+// func (s *AuthService) IssueRef(userID int64) (string, error) {
+// 	token := genRef()
+// 	hash := sha256.Sum256([]byte(token))
+//
+// 	now := time.Now()
+// 	_, err := s.Queries.CreateRefreshToken(nil, sqlc.CreateRefreshTokenParams{
+// 		TokenHash: hash[:],
+// 		UserID:    userID,
+// 		IssuedAt:  now.Unix(),
+// 		ExpiresAt: now.Add(s.refDur).Unix(),
+// 	})
+//
+// 	return token, err
+// }
+
+func (s *AuthService) IssueAcc(userID, name, role string) (string, error) {
 	now := time.Now()
 	claims := Claims{
 		RegisteredClaims: jwt.RegisteredClaims{
 			Subject:   userID,
 			Issuer:    s.issuer,
 			IssuedAt:  jwt.NewNumericDate(now),
-			ExpiresAt: jwt.NewNumericDate(now.Add(s.ttl)),
+			ExpiresAt: jwt.NewNumericDate(now.Add(s.accDur)),
 		},
 		Name: name,
 		Role: role,
