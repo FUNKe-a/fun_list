@@ -13,5 +13,3 @@ type Handler struct {
 	Queries *sqlc.Queries
 	Tokens  *auth.AuthService
 }
-
-

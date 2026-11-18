@@ -36,9 +36,9 @@ func apiMux(h *handlers.Handler) *http.ServeMux {
 
 	mux.HandleFunc("GET /comments", h.ListComments)
 	mux.HandleFunc("GET /comments/{id}", h.GetComment)
-	mux.HandleFunc("POST /comments", h.PostComment)
-	mux.HandleFunc("PUT /comments/{id}", h.PutComment)
-	mux.HandleFunc("DELETE /comments/{id}", h.DeleteComment)
+	mux.Handle("POST /comments", h.ValidateToken(http.HandlerFunc(h.PostComment)))
+	mux.Handle("PUT /comments/{id}", http.HandlerFunc(h.PutComment))
+	mux.Handle("DELETE /comments/{id}", h.ValidateToken(http.HandlerFunc(h.DeleteComment)))
 
 	//  login api
 	mux.HandleFunc("POST /auth/login", h.HandleLogin)
@@ -54,7 +54,8 @@ func viewMux(h *handlers.Handler) *http.ServeMux {
 
 	mux.HandleFunc("GET /login", h.ShowLogin)
 	mux.HandleFunc("GET /register", h.ShowRegister)
-	mux.Handle("GET /dashboard", h.ValidateToken(http.HandlerFunc(h.ShowDashboard)))
+	mux.Handle("GET /", h.ValidateToken(http.HandlerFunc(h.ShowDashboard)))
+	mux.Handle("GET /comments", h.ValidateToken(http.HandlerFunc(h.ShowComments)))
 
 	return mux
 }

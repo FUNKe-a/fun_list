@@ -1,0 +1,16 @@
+{{ range . }}
+	<li id="comment-{{ .CommentID }}" class="comment">
+		<header class="comment__meta">
+			<span class="comment__author">{{ .AuthorName }}</span>
+			<span class="comment__rating">{{ .Rating }}<small>/10</small></span>
+		</header>
+		<p class="comment__body">{{ .Content }}</p>
+		{{ if .CanDelete }}
+		<button type="button"
+				hx-delete="/api/comments/{{ .CommentID }}"
+				hx-target="closest li"
+				hx-swap="delete"
+				hx-confirm="Delete this comment?">Delete</button>
+		{{ end }}
+	</li>
+{{ end }}

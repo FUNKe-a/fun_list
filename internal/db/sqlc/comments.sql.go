@@ -109,6 +109,51 @@ func (q *Queries) ListComments(ctx context.Context) ([]Comment, error) {
 	return items, nil
 }
 
+const listMediaComments = `-- name: ListMediaComments :many
+SELECT comment_id, user_id, media_id, content, rating, created_at
+FROM comments
+WHERE media_id = ?1
+  AND comment_id >= ?2
+ORDER BY comment_id DESC
+LIMIT ?3
+`
+
+type ListMediaCommentsParams struct {
+	MediaID  int64
+	StartKey int64
+	PageSize int64
+}
+
+func (q *Queries) ListMediaComments(ctx context.Context, arg ListMediaCommentsParams) ([]Comment, error) {
+	rows, err := q.db.QueryContext(ctx, listMediaComments, arg.MediaID, arg.StartKey, arg.PageSize)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Comment
+	for rows.Next() {
+		var i Comment
+		if err := rows.Scan(
+			&i.CommentID,
+			&i.UserID,
+			&i.MediaID,
+			&i.Content,
+			&i.Rating,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const updateComment = `-- name: UpdateComment :one
 UPDATE comments
 set user_id = ?,

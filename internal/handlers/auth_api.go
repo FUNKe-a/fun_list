@@ -14,10 +14,12 @@ import (
 func (h *Handler) HandleRefresh(w http.ResponseWriter, r *http.Request) {
 	rc, err := r.Cookie("refresh_token")
 	if err != nil {
-		// http.Error(w, "missing refresh token", http.StatusUnauthorized)
-		if r.Header.Get("HX-Request") != "" {
-			w.Header().Add("HX-Redirect", "/login")
-		}
+		// if r.Header.Get("HX-Request") != "" {
+		// 	w.Header().Add("HX-Redirect", "/login")
+		// } else {
+		// 	http.Error(w, "missing refresh token", http.StatusUnauthorized)
+		// }
+		http.Error(w, "missing refresh token", http.StatusUnauthorized)
 		return
 	}
 
@@ -40,10 +42,12 @@ func (h *Handler) HandleRefresh(w http.ResponseWriter, r *http.Request) {
 		Now:     now.Unix(),
 	})
 	if err != nil {
-		// http.Error(w, "missing refresh token", http.StatusUnauthorized)
-		if r.Header.Get("HX-Request") != "" {
-			w.Header().Add("HX-Redirect", "/login")
-		}
+		// if r.Header.Get("HX-Request") != "" {
+		// 	w.Header().Add("HX-Redirect", "/login")
+		// } else {
+		// 	http.Error(w, "missing refresh token", http.StatusUnauthorized)
+		// }
+		http.Error(w, "missing refresh token", http.StatusUnauthorized)
 		return
 	}
 	setAuthCookie(w, "refresh_token", refTo, time.Unix(row.ExpiresAt, 0), "/api/auth")
@@ -61,6 +65,7 @@ func (h *Handler) HandleLogin(w http.ResponseWriter, r *http.Request) {
 	dbUser, _ := h.Queries.GetUserByUsername(r.Context(), r.PostFormValue("username"))
 	if bcrypt.CompareHashAndPassword([]byte(dbUser.PasswordHash), []byte(r.PostFormValue("password"))) != nil {
 		http.Error(w, "incorrect credentials", http.StatusUnauthorized)
+		return
 	}
 
 	now := time.Now()
@@ -83,11 +88,13 @@ func (h *Handler) HandleLogin(w http.ResponseWriter, r *http.Request) {
 	setAuthCookie(w, "refresh_token", refTo, time.Unix(res.ExpiresAt, 0), "/api/auth")
 
 	if r.Header.Get("HX-Request") != "" {
-		w.Header().Add("HX-Redirect", "/dashboard")
+		w.Header().Add("HX-Redirect", "/")
 	}
 }
 
 func (h *Handler) HandleRegister(w http.ResponseWriter, r *http.Request) {
+	slog.Debug("Register api request.")
+
 	email := r.PostFormValue("email")
 
 	passHash, err := bcrypt.GenerateFromPassword(
@@ -119,7 +126,7 @@ func (h *Handler) HandleRegister(w http.ResponseWriter, r *http.Request) {
 		user.Role,
 	)
 	if err != nil {
-		http.Error(w, "failed to issue access token.", http.StatusInternalServerError)
+		http.Error(w, "failed to issue access token", http.StatusInternalServerError)
 		return
 	}
 	setAuthCookie(w, "access_token", accessToken, now.Add(h.Tokens.AccTTL()), "/")
@@ -135,7 +142,7 @@ func (h *Handler) HandleRegister(w http.ResponseWriter, r *http.Request) {
 	setAuthCookie(w, "refresh_token", refTo, time.Unix(res.ExpiresAt, 0), "/api/auth")
 
 	if r.Header.Get("HX-Request") != "" {
-		w.Header().Add("HX-Redirect", "/dashboard")
+		w.Header().Add("HX-Redirect", "/")
 	}
 }
 

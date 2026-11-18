@@ -4,13 +4,25 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"github.com/FUNKe-a/fun_list/internal/auth"
 	"github.com/FUNKe-a/fun_list/internal/db/sqlc"
+	"html/template"
 	"log/slog"
 	_ "modernc.org/sqlite"
 	"net/http"
 	"strconv"
 	"strings"
 )
+
+var tmplFrag = template.Must(template.ParseGlob("internal/assets/html/fragments/*.tmpl"))
+
+type commentViewParams struct {
+	CommentID  int64
+	AuthorName string
+	Rating     int64
+	Content    string
+	CanDelete  bool
+}
 
 // Comment table handlers
 func (h *Handler) GetComment(w http.ResponseWriter, r *http.Request) {
@@ -35,24 +47,85 @@ func (h *Handler) GetComment(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) ListComments(w http.ResponseWriter, r *http.Request) {
-	comments, err := h.Queries.ListComments(r.Context())
+	q := r.URL.Query()
+
+	mediaID, err := strconv.ParseInt(q.Get("media_id"), 10, 64)
 	if err != nil {
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		http.Error(w, "invalid media id", http.StatusBadRequest)
+		return
+	}
+	startKey, err := strconv.ParseInt(q.Get("start_key"), 10, 64)
+	if err != nil {
+		http.Error(w, "invalid start key", http.StatusBadRequest)
+		return
+	}
+	pageSize, err := strconv.ParseInt(q.Get("page_size"), 10, 64)
+	if err != nil {
+		http.Error(w, "invalid page size", http.StatusBadRequest)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(comments)
+	rows, err := h.Queries.ListMediaComments(r.Context(), sqlc.ListMediaCommentsParams{
+		MediaID:  mediaID,
+		StartKey: startKey,
+		PageSize: pageSize,
+	})
+	if err != nil {
+		http.Error(w, "server error", http.StatusInternalServerError)
+		return
+	}
+
+	var commViews []commentViewParams
+	for _, comm := range rows {
+		params := commentViewParams{
+			CommentID:  comm.CommentID,
+			AuthorName: "placeholder",
+			Rating:     comm.Rating,
+			Content:    comm.Content,
+			CanDelete:  true,
+		}
+		commViews = append(commViews, params)
+	}
+
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	tmplFrag.ExecuteTemplate(w, "comments.tmpl", commViews)
 }
 
 func (h *Handler) PostComment(w http.ResponseWriter, r *http.Request) {
-	var params sqlc.CreateCommentParams
-
-	if err := json.NewDecoder(r.Body).Decode(&params); err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
+	// PARSE
+	c, ok := r.Context().Value(claimsKey{}).(*auth.Claims)
+	if !ok {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
 		return
 	}
 
+	userID, err := strconv.ParseInt(c.Subject, 10, 64)
+	if err != nil {
+		http.Error(w, "couldn't parse subject from  token", http.StatusInternalServerError)
+		return
+	}
+	mediaID, err := strconv.ParseInt(r.PostFormValue("media_id"), 10, 64)
+	if err != nil {
+		slog.Info("pog", err)
+		slog.Info("pog", "val", r.PostForm.Get("media_id"))
+		http.Error(w, "invalid media_id", http.StatusBadRequest)
+		return
+	}
+	content := r.PostFormValue("content")
+	rating, err := strconv.ParseInt(r.PostFormValue("rating"), 10, 64)
+	if err != nil {
+		http.Error(w, "invalid rating", http.StatusBadRequest)
+		return
+	}
+
+	params := sqlc.CreateCommentParams{
+		UserID:  userID,
+		MediaID: mediaID,
+		Content: content,
+		Rating:  rating,
+	}
+
+	// CHECK
 	var errs []string
 	if params.UserID <= 0 {
 		errs = append(errs, "Field 'user_id' cannot be empty and must be above 0.")
@@ -72,32 +145,67 @@ func (h *Handler) PostComment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	comment, err := h.Queries.CreateComment(r.Context(), params)
+	// CREATE
+	comm, err := h.Queries.CreateComment(r.Context(), params)
 	if err != nil {
 		http.Error(w, "Failed to create comment", http.StatusInternalServerError)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Location", fmt.Sprintf("/api/comments/%d", comment.CommentID))
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(comment)
+	tmplFrag.ExecuteTemplate(w, "comments.tmpl", []commentViewParams{
+		commentViewParams{CommentID: comm.CommentID,
+			AuthorName: "placeholder",
+			Rating:     comm.Rating,
+			Content:    comm.Content,
+			CanDelete:  true,
+		},
+	})
 }
 
 func (h *Handler) DeleteComment(w http.ResponseWriter, r *http.Request) {
+	// PARSE
+	c, ok := r.Context().Value(claimsKey{}).(*auth.Claims)
+	if !ok {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+
 	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
 	if err != nil {
 		http.Error(w, "Invalid ID format", http.StatusBadRequest)
 		return
 	}
 
-	err = h.Queries.DeleteComment(r.Context(), id)
-	if err != nil {
-		http.Error(w, "Failed to delete comment", http.StatusInternalServerError)
-		return
+	// CHECKS
+	if c.Role == "moderator" || c.Role == "admin" {
+		err := h.Queries.DeleteComment(r.Context(), id)
+		if err != nil {
+			http.Error(w, "Failed to delete comment", http.StatusInternalServerError)
+			return
+		}
 	}
 
-	w.WriteHeader(http.StatusNoContent)
+	if c.Role == "user" {
+		comm, err := h.Queries.GetComment(r.Context(), id)
+		if err != nil {
+			http.Error(w, "Comment doesn't exist", http.StatusBadRequest)
+			return
+		}
+
+		cUID := strconv.FormatInt(comm.UserID, 10)
+		if cUID == c.Subject {
+			err := h.Queries.DeleteComment(r.Context(), id)
+			if err != nil {
+				http.Error(w, "Failed to delete comment", http.StatusInternalServerError)
+				return
+			}
+		} else {
+			http.Error(w, "can't delete other comments", http.StatusForbidden)
+			return
+		}
+	}
 }
 
 func (h *Handler) PutComment(w http.ResponseWriter, r *http.Request) {
