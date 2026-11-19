@@ -8,8 +8,6 @@
         <script defer src="/static/js/htmx.min.js"></script>
     </head>
     <body>
-		<div hx-post="/api/auth/refresh" hx-trigger="load" hx-swap="none"></div>
-
 		<h1>Log in</h1>
 
 		<form hx-post="/api/auth/login" hx-swap="none">
@@ -31,6 +29,8 @@
 			<button type="submit">Log in</button>
 		  </p>
 		</form>
+
+		<button type="button" hx-post="/api/auth/refresh" hx-swap="none">refresh token</button>
 
 		<p>No account yet? <a href="/register">Create one</a></p>
     </body>

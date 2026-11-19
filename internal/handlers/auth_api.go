@@ -12,13 +12,9 @@ import (
 )
 
 func (h *Handler) HandleRefresh(w http.ResponseWriter, r *http.Request) {
+	slog.Info("refresh ask")
 	rc, err := r.Cookie("refresh_token")
 	if err != nil {
-		// if r.Header.Get("HX-Request") != "" {
-		// 	w.Header().Add("HX-Redirect", "/login")
-		// } else {
-		// 	http.Error(w, "missing refresh token", http.StatusUnauthorized)
-		// }
 		http.Error(w, "missing refresh token", http.StatusUnauthorized)
 		return
 	}
@@ -42,23 +38,18 @@ func (h *Handler) HandleRefresh(w http.ResponseWriter, r *http.Request) {
 		Now:     now.Unix(),
 	})
 	if err != nil {
-		// if r.Header.Get("HX-Request") != "" {
-		// 	w.Header().Add("HX-Redirect", "/login")
-		// } else {
-		// 	http.Error(w, "missing refresh token", http.StatusUnauthorized)
-		// }
 		http.Error(w, "missing refresh token", http.StatusUnauthorized)
 		return
 	}
 	setAuthCookie(w, "refresh_token", refTo, time.Unix(row.ExpiresAt, 0), "/api/auth")
-
-	user, err := h.Queries.GetUserByUserID(r.Context(), row.UserID)
+user, err := h.Queries.GetUserByUserID(r.Context(), row.UserID)
 	accessToken, err := h.Tokens.IssueAcc(
 		strconv.FormatInt(user.UserID, 10),
 		user.Username,
 		user.Role,
 	)
 	setAuthCookie(w, "access_token", accessToken, now.Add(h.Tokens.AccTTL()), "/")
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func (h *Handler) HandleLogin(w http.ResponseWriter, r *http.Request) {
@@ -85,11 +76,13 @@ func (h *Handler) HandleLogin(w http.ResponseWriter, r *http.Request) {
 		IssuedAt:  now.Unix(),
 		ExpiresAt: now.Add(h.Tokens.RefTTL()).Unix(),
 	})
-	setAuthCookie(w, "refresh_token", refTo, time.Unix(res.ExpiresAt, 0), "/api/auth")
-
-	if r.Header.Get("HX-Request") != "" {
-		w.Header().Add("HX-Redirect", "/")
+	if rc, err := r.Cookie("refresh_token"); err == nil {
+		hash := sha256.Sum256([]byte(rc.Value))
+		h.Queries.DeleteRefreshToken(r.Context(), hash[:])
 	}
+
+	setAuthCookie(w, "refresh_token", refTo, time.Unix(res.ExpiresAt, 0), "/api/auth")
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func (h *Handler) HandleRegister(w http.ResponseWriter, r *http.Request) {
@@ -140,10 +133,7 @@ func (h *Handler) HandleRegister(w http.ResponseWriter, r *http.Request) {
 		ExpiresAt: now.Add(h.Tokens.RefTTL()).Unix(),
 	})
 	setAuthCookie(w, "refresh_token", refTo, time.Unix(res.ExpiresAt, 0), "/api/auth")
-
-	if r.Header.Get("HX-Request") != "" {
-		w.Header().Add("HX-Redirect", "/")
-	}
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func (h *Handler) HandleLogout(w http.ResponseWriter, r *http.Request) {
@@ -156,10 +146,7 @@ func (h *Handler) HandleLogout(w http.ResponseWriter, r *http.Request) {
 		h.Queries.DeleteRefreshToken(r.Context(), hash[:])
 		setAuthCookie(w, "refresh_token", "", time.Now(), "/api/auth")
 	}
-
-	if r.Header.Get("HX-Request") != "" {
-		w.Header().Add("HX-Redirect", "/login")
-	}
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func setAuthCookie(w http.ResponseWriter, name, value string, expires time.Time, path string) {
